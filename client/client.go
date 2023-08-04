@@ -14,7 +14,7 @@ import (
 )
 
 type Client struct {
-	publicKey ed25519.PublicKey
+	publicKey  ed25519.PublicKey
 	privateKey ed25519.PrivateKey
 }
 
@@ -35,14 +35,12 @@ func (c *Client) Echo(message string) {
 
 	grpcClient := pb.NewEchoServiceClient(conn)
 
-
 	signature := ed25519.Sign(c.privateKey, []byte(message))
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
 	pubKeyStr := base64.StdEncoding.EncodeToString(c.publicKey)
-	log.Printf("client public key string: %s", base64.StdEncoding.EncodeToString(c.publicKey))
 	r, err := grpcClient.Echo(ctx, &pb.EchoRequest{Message: message, PublicKey: pubKeyStr, Signature: signature})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
