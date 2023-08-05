@@ -11,4 +11,6 @@ func main() {
 	c := client.NewClientWithKeys(pubKey, privKey)
 
 	c.Echo("Hello World")
+
+	c.Add(1, 2)
 }

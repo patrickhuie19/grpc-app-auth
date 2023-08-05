@@ -7,10 +7,13 @@ import (
 	"log"
 	"time"
 
-	pb "grpc-app-auth/echo"
+	pb "grpc-app-auth/services"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
+
+	"grpc-app-auth/utils"
 )
 
 type Client struct {
@@ -33,7 +36,7 @@ func (c *Client) Echo(message string) {
 	}
 	defer conn.Close()
 
-	grpcClient := pb.NewEchoServiceClient(conn)
+	grpcClient := pb.NewEchoClient(conn)
 
 	signature := ed25519.Sign(c.privateKey, []byte(message))
 
@@ -46,4 +49,30 @@ func (c *Client) Echo(message string) {
 		log.Fatalf("could not greet: %v", err)
 	}
 	log.Printf("Greeting: %s", r.Message)
+}
+
+func (c *Client) Add(a float64, b float64) {
+	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+
+	grpcClient := pb.NewAddClient(conn)
+
+	signature := ed25519.Sign(c.privateKey, []byte(utils.AddCanonicalization(a, b)))
+
+	signatureStr := base64.StdEncoding.EncodeToString(signature)
+	pubKeyStr := base64.StdEncoding.EncodeToString(c.publicKey)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	ctx = metadata.AppendToOutgoingContext(ctx, "signature", signatureStr, "key", pubKeyStr)
+
+	r, err := grpcClient.Add(ctx, &pb.AddRequest{A: a, B: b})
+	if err != nil {
+		log.Fatalf("could not add: %v", err)
+	}
+	log.Printf("Result: %v", r.Result)
 }
