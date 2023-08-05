@@ -3,6 +3,7 @@ package keyutils
 import (
 	"crypto/ed25519"
 	"encoding/base64"
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -41,6 +42,13 @@ func SaveKeysToFiles(pairs ...*FileKeyPair) error {
 }
 
 func ReadKeysFromFiles(pubKeyFileName string, privKeyFileName string) (ed25519.PublicKey, ed25519.PrivateKey) {
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error :", err)
+		panic(err)
+	}
+	fmt.Println("Current directory :", dir)
+
 	// Read public key from file
 	pubKeyFile := filepath.Join(fixturesDir, pubKeyFileName)
 	pubKeyBase64, err := os.ReadFile(pubKeyFile)
