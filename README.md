@@ -6,7 +6,7 @@
 
 ## Introduction
 
-`grpc-app-auth` is a demo project that showcases the capabilities of ed25519 public-key signatures, distributed tracing, and secure RPC calls. It allows users to run a server and client example to explore the technology and understand its implementation.
+`grpc-app-auth` is a demo project that showcases the capabilities of ed25519 public-key signatures, distributed tracing, and secure RPC calls.
 
 ## Quick Installation
 
@@ -15,27 +15,8 @@ git clone https://github.com/patrickhuie19/grpc-app-auth.git
 cd grpc-app-auth/internal/example
 ```
 
-### Running the Server and Client
-
-To give the code a try for the first time, you can run the server and client in two different terminals.
-
-#### Server
-
-Navigate to the server directory and run:
-
-```
-cd internal/example/server
-go run .
-```
-
-#### Client
-
-Similarly, for the client:
-
-```bash
-cd internal/example/client
-go run .
-```
+## Examples
+Checkout the examples directory for different ways of interacting with the implemented gRPC services
 
 ## Allowlist Trust Store
 
@@ -57,8 +38,9 @@ Contributions and PRs are most welcome! Feel free to fork the repository, make y
 
 ## Roadmap
 
-### Signature-Based RPC Calls
-Create an example RPC call that uses signatures in the gRPC request metadata, and not in the message body
+### Containerization
+
+We're working on providing relevant docker templates and documentation to run the examples from docker containers. 
 
 ## License
 
