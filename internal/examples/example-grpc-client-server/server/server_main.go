@@ -7,6 +7,7 @@ import (
 	"grpc-app-auth/internal/keyutils"
 	"grpc-app-auth/server"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -27,6 +28,12 @@ func main() {
 	tks.StorePublicKey(base64.StdEncoding.EncodeToString(publicKey), publicKey)
 
 	s := server.NewServerWithTrustedKeys(tks)
-	s.Serve()
-	time.AfterFunc(5*time.Second, s.Stop)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		s.Serve()
+	}()
+	time.AfterFunc(300*time.Second, s.Stop)
+	wg.Wait()
 }
