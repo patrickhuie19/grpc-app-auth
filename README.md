@@ -18,9 +18,9 @@ cd grpc-app-auth/internal/example
 ## Examples
 Checkout the examples directory for different ways of interacting with the implemented gRPC services
 
-## Allowlist Trust Store
+## Server and Client API
 
-If you want to understand how the allowlist trust store works, you can check out the integration tests in the intgtest directory and run the tests with:
+Check out the integration tests in the intgtest directory and run the tests to get a feel for the Client and Server API.
 
 ```bash
 cd internal/intgtest
@@ -29,7 +29,7 @@ go test ./... -v
 
 ## Distributed Tracing
 
-We are experimenting with instrumenting this application with OpenTelemetry tracing. Check out branches other than main to see the ongoing work in this area.
+The gRPC services in this application can be instrumented OpenTelemetry tracing. Check out `example-otlp-agent-tempo-grafana`.
 
 ## Contributions
 
@@ -38,10 +38,4 @@ Contributions and PRs are most welcome! Feel free to fork the repository, make y
 
 ## Roadmap
 
-### Containerization
-
-We're working on providing relevant docker templates and documentation to run the examples from docker containers. 
-
-## License
-
-This project is licensed under the terms of the MIT license
+Nothing at the moment - feel free to suggest!
