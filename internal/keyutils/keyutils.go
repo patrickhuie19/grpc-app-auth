@@ -3,7 +3,6 @@ package keyutils
 import (
 	"crypto/ed25519"
 	"encoding/base64"
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -22,11 +21,18 @@ func SaveKeysToFiles(pairs ...*FileKeyPair) error {
 	}
 
 	for _, pair := range pairs {
+		// Define the path to the key file
+		keyFile := filepath.Join(fixturesDir, pair.FileName)
+
+		// Check if file already exists
+		if _, err := os.Stat(keyFile); !os.IsNotExist(err) {
+			continue
+		}
+
 		// Encode key in base64
 		keyBase64 := base64.StdEncoding.EncodeToString(pair.Key)
 
 		// Save key to file
-		keyFile := filepath.Join(fixturesDir, pair.FileName)
 		file, err := os.Create(keyFile)
 		if err != nil {
 			return err
@@ -41,41 +47,40 @@ func SaveKeysToFiles(pairs ...*FileKeyPair) error {
 	return nil
 }
 
-func ReadKeysFromFiles(pubKeyFileName string, privKeyFileName string) (ed25519.PublicKey, ed25519.PrivateKey) {
-	dir, err := os.Getwd()
-	if err != nil {
-		fmt.Println("Error :", err)
-		panic(err)
-	}
-	fmt.Println("Current directory :", dir)
-
+func ReadKeysFromFiles(pubKeyFileName string, pubKey *ed25519.PublicKey, privKeyFileName string, privKey *ed25519.PrivateKey) error {
 	// Read public key from file
 	pubKeyFile := filepath.Join(fixturesDir, pubKeyFileName)
 	pubKeyBase64, err := os.ReadFile(pubKeyFile)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Read private key from file
 	privKeyFile := filepath.Join(fixturesDir, privKeyFileName)
 	privKeyBase64, err := os.ReadFile(privKeyFile)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Decode public key from base64
 	pubKeyDecoded, err := base64.StdEncoding.DecodeString(string(pubKeyBase64))
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Decode private key from base64
 	privKeyDecoded, err := base64.StdEncoding.DecodeString(string(privKeyBase64))
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	return (ed25519.PublicKey)(pubKeyDecoded), (ed25519.PrivateKey)(privKeyDecoded)
+	ed25519pubKey := (ed25519.PublicKey)(pubKeyDecoded)
+	ed25519privKey := (ed25519.PrivateKey)(privKeyDecoded)
+
+	*pubKey = ed25519pubKey
+	*privKey = ed25519privKey
+
+	return nil
 }
 
 type FileKeyPair struct {
