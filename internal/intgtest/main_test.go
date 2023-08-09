@@ -17,7 +17,6 @@ func Test(t *testing.T) {
 
 	tks := &internal.TrustedKeyStore{Keys: map[string]ed25519.PublicKey{}}
 	tks.StorePublicKey(base64.StdEncoding.EncodeToString(publicKey), publicKey)
-	t.Logf("server public key string: %s", base64.StdEncoding.EncodeToString(publicKey))
 
 	s := server.NewServerWithTrustedKeys(tks)
 	c := client.NewClientWithKeys(publicKey, privateKey)

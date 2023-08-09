@@ -9,6 +9,8 @@ import (
 
 	pb "grpc-app-auth/services"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -30,7 +32,16 @@ func NewClientWithKeys(publicKey ed25519.PublicKey, privateKey ed25519.PrivateKe
 }
 
 func (c *Client) Echo(message string) {
-	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial("localhost:50051",
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(
+			grpc_middleware.ChainUnaryClient(
+				otelgrpc.UnaryClientInterceptor(),
+				loggingUnaryClientInterceptor,
+			),
+		),
+	)
+
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -75,4 +86,14 @@ func (c *Client) Add(a float64, b float64) {
 		log.Fatalf("could not add: %v", err)
 	}
 	log.Printf("Result: %v", r.Result)
+}
+
+func loggingUnaryClientInterceptor(
+	ctx context.Context, method string, req, resp interface{},
+	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption,
+) error {
+	log.Printf("[client] Request: %+v", req)
+	err := invoker(ctx, method, req, resp, cc, opts...)
+	log.Printf("[client] Response: %+v", resp)
+	return err
 }
