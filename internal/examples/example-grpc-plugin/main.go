@@ -7,17 +7,20 @@ import (
 	"strconv"
 
 	"grpc-app-auth/internal/examples/example-grpc-plugin/shared"
-
 	"github.com/hashicorp/go-plugin"
 )
 
 func main() {
+	enableTelemetry := os.Getenv("ENABLE_TELEMETRY")
+	telemetryTarget := os.Getenv("TELEMETRY_TARGET")
 
 	// We're a host. Start by launching the plugin process.
+	cmd := exec.Command("sh", "-c", os.Getenv("ADD_PLUGIN"))
+	cmd.Env = []string{"ENABLE_TELEMETRY=" + enableTelemetry, "TELEMETRY_TARGET=" + telemetryTarget}
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig:  shared.Handshake,
 		Plugins:          shared.PluginMap,
-		Cmd:              exec.Command("sh", "-c", os.Getenv("ADD_PLUGIN")),
+		Cmd:              cmd,
 		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
 	})
 	defer client.Kill()
@@ -36,7 +39,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// We should have a KV store now! This feels like a normal interface
+	// We should have an add service now! This feels like a normal interface
 	// implementation but is in fact over an RPC connection.
 	addService := raw.(shared.AddInterface)
 	a, err := strconv.ParseFloat(os.Args[1], 64)

@@ -10,8 +10,18 @@ services:
     ports:
       - "50051:50051"
     environment:
-      - ENABLE_TELEMETRY="true"
-      - TELEMETRY_TARGET="otel-collector:4317"
+      - ENABLE_TELEMETRY=true
+      - TELEMETRY_TARGET=otel-collector:4317
+
+  example-grpc-plugin:
+    build: 
+      context: ../../../
+      dockerfile: internal/examples/example-grpc-plugin/Dockerfile
+    depends_on:
+      - otel-collector
+    environment:
+      - ENABLE_TELEMETRY=true
+      - TELEMETRY_TARGET=otel-collector:4317
 
   # Put traces in a Grafana Agent pipeline...
   otel-collector:
@@ -20,7 +30,7 @@ services:
     volumes:
       - ./otel-collector.yaml:/etc/otel-collector.yaml
     ports:
-      - "4317" # otlp grpc
+      - "4317:4317" # otlp grpc
     depends_on:
       - tempo
 

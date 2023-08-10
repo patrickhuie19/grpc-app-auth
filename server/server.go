@@ -71,7 +71,7 @@ func NewServerWithTrustedKeysAndFuncOpts(trustedKeys keystore.KeyStore, opts ...
 	}
 
 	if o.enableTracing {
-		if err := server.setupOpenTelemetry(o.tracingTarget); err != nil {
+		if err := server.SetupOpenTelemetry(o.tracingTarget, "grpc-app-auth-server"); err != nil {
 			return nil, err
 		}
 	}
@@ -167,7 +167,7 @@ func loggingUnaryServerInterceptor(
 	return resp, err
 }
 
-func (s *Server) setupOpenTelemetry(target string) error {
+func (s *Server) SetupOpenTelemetry(target string, serviceName string) error {
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 
@@ -193,7 +193,7 @@ func (s *Server) setupOpenTelemetry(target string) error {
 
 	resource := resource.NewWithAttributes(
 		semconv.SchemaURL,
-		semconv.ServiceName("grpc-app-auth-server"),
+		semconv.ServiceName(serviceName),
 		semconv.ServiceVersion("0.0.1"),
 	)
 
