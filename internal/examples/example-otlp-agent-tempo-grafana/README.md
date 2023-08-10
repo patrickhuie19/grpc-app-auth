@@ -1,6 +1,6 @@
 # Distributed Tracing Example: OTEL + Grafana
 
-This example deploys the grpc-app-auth server, the example host-plugin application from `example-grpc-plugin`, an OTEL collector, grafana Tempo, and the grafana UI to containers on the same network. 
+This example deploys the grpc-app-auth server, an OTEL collector, grafana Tempo, and the grafana UI to containers on the same network.
 
 A localhost client can send gRPC calls to the server. The gRPC server is instrumented with open telemetry traces, which are sent to the OTEL collector and forwarded to the Tempo backend. The grafana UI can then read the trace data from the Tempo backend. 
 
@@ -9,7 +9,7 @@ A localhost client can send gRPC calls to the server. The gRPC server is instrum
 docker-compose up --build
 ```
 
-You should see 5 containers started.
+You should see 4 containers started.
 
 2. Send client calls
 Open a new terminal and run:
@@ -17,6 +17,15 @@ Open a new terminal and run:
 ```bash
 cd ../example-grpc-client-server/client
 go run .
+```
+
+To observe traces from the plugin example, navigate to `example-grpc-plugin`.
+
+Then follow the build instructions in [plugin README](example-grpc-pluging/README.md)
+
+Run the example:
+```bash
+./add-service 1 2
 ```
 
 3. Navigate to [Grafana](http://localhost:3000/explore) select the Tempo data source and use the "Search" tab to find traces.

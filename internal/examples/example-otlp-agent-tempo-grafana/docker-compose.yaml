@@ -13,16 +13,6 @@ services:
       - ENABLE_TELEMETRY=true
       - TELEMETRY_TARGET=otel-collector:4317
 
-  example-grpc-plugin:
-    build: 
-      context: ../../../
-      dockerfile: internal/examples/example-grpc-plugin/Dockerfile
-    depends_on:
-      - otel-collector
-    environment:
-      - ENABLE_TELEMETRY=true
-      - TELEMETRY_TARGET=otel-collector:4317
-
   # Put traces in a Grafana Agent pipeline...
   otel-collector:
     image: otel/opentelemetry-collector:0.61.0

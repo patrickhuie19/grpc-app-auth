@@ -2,7 +2,7 @@
 
 Adapted heavily from https://github.com/hashicorp/go-plugin/tree/main/examples/grpc
 
-## To build this example
+## To build and run this example
 ```bash
 # This builds the main CLI
 $ go build -o add-service
@@ -15,9 +15,7 @@ $ export ADD_PLUGIN="./add-service-grpc"
 
 # Perform Add
 $ ./add-service 1 2
-3
 ```
 
 ## Performance
-Add service over plugin is ~10x e2e lower latency than over the straight gRPC client server implemented in
-`example-grpc-client-server`
+Add service over plugin is ~10x e2e lower latency than over the straight gRPC client server implemented in `example-grpc-client-server`
