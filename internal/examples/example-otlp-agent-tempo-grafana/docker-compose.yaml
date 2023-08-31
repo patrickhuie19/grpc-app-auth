@@ -1,6 +1,7 @@
 version: "3"
 services:
 
+  # Instrumented application configured to export traces to ...
   example-grpc-server:
     build: 
       context: ../../../
@@ -13,7 +14,7 @@ services:
       - ENABLE_TELEMETRY=true
       - TELEMETRY_TARGET=otel-collector:4317
 
-  # Put traces in a Grafana Agent pipeline...
+  # ... the OpenTelemetry Collector configured to receive traces and export to Tempo ...
   otel-collector:
     image: otel/opentelemetry-collector:0.61.0
     command: [ "--config=/etc/otel-collector.yaml" ]
@@ -24,7 +25,7 @@ services:
     depends_on:
       - tempo
 
-  # To eventually offload to Tempo...
+  # .. Which accepts requests from grafana ...
   tempo:
     image: grafana/tempo:latest
     command: [ "-config.file=/etc/tempo.yaml" ]

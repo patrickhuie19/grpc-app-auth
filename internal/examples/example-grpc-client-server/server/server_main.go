@@ -38,7 +38,7 @@ func main() {
 	telemetryTarget := os.Getenv("TELEMETRY_TARGET")
 
 	opts := make([]server.ServerOption, 0, 1)
-	if enableTelemetry == "true" {
+	if enableTelemetry == "true" && telemetryTarget != "" {
 		opts = append(opts, server.WithOpenTelemetry(telemetryTarget))
 	}
 

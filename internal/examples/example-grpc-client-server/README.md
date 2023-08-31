@@ -7,7 +7,7 @@ To give the code a try for the first time, you can run the server and client in 
 Navigate to the server directory and run:
 
 ```bash
-cd internal/example/server
+cd internal/examples/example-grpc-client-server/server
 go run .
 ```
 
@@ -16,6 +16,6 @@ go run .
 Similarly, for the client:
 
 ```bash
-cd internal/example/client
+cd internal/examples/example-grpc-client-server/client
 go run .
 ```

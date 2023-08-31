@@ -1,0 +1,110 @@
+name: Enable Tracing for PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled, unlabeled, closed]
+
+jobs:
+  tracing:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Check for "enable tracing" label
+      id: check-label
+      run: |
+        label=$(jq -r '.pull_request.labels[].name' "$GITHUB_EVENT_PATH")
+        if [[ "$label" == "enable tracing" ]]; then
+          echo "Enable tracing label found."
+          echo "trace=true" >> $GITHUB_OUTPUT
+        else
+          echo "Enable tracing label not found."
+          echo "trace=true" >> $GITHUB_OUTPUT
+        fi
+        echo "$PWD"
+    - name: Build Example GRPC Server Docker Image
+      if: steps.check-label.outputs.trace == 'true'
+      run: |
+        # Build the Docker image
+        docker build -t example-grpc-server:latest -f ./internal/examples/example-grpc-client-server/server/Dockerfile .
+    - name: Setup Grafana and OpenTelemetry
+      id: docker-setup
+      if: steps.check-label.outputs.trace == 'true'
+      run: |
+        # Create network
+        docker network create tracing_network
+
+        # TODO (issues/8): order here matters
+
+        # Start Grafana
+        cd ./internal/examples/example-otlp-agent-tempo-grafana/
+        docker run -d --network=tracing_network --name=grafana -p 3000:3000 -v $PWD/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml -e GF_AUTH_ANONYMOUS_ENABLED=true -e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin -e GF_AUTH_DISABLE_LOGIN_FORM=true -e GF_FEATURE_TOGGLES_ENABLE=traceqlEditor grafana/grafana:9.4.3
+
+        # Start Tempo
+        docker run -d --network=tracing_network --name=tempo -v ./tempo.yaml:/etc/tempo.yaml -v $PWD/tempo-data:/tmp/tempo grafana/tempo:latest -config.file=/etc/tempo.yaml
+
+        # Start OpenTelemetry Collector
+        docker run -d --network=tracing_network --name=otel-collector -v $PWD/otel-collector.yaml:/etc/otel-collector.yaml -p 4317:4317 otel/opentelemetry-collector:0.61.0 --config=/etc/otel-collector.yaml
+    - name: Install ngrok
+      id: install-ngrok
+      if: steps.check-label.outputs.trace == 'true'
+      run: |
+        # Install Ngrok
+        curl -fsSL https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -o ngrok.zip
+        unzip ngrok.zip
+        chmod +x ngrok
+    - name: Expose Grafana UI
+      id: expose-grafana-ui
+      if: steps.check-label.outputs.trace == 'true'
+      env:
+        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+      run: |
+        # Start Ngrok to expose the Grafana UI port
+        ./ngrok authtoken $NGROK_AUTH_TOKEN
+        ./ngrok http 3000 &
+        sleep 5  # Give ngrok some time to initialize and bind the port
+        echo "NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')" >> "$GITHUB_ENV"
+    - name: Print Grafana UI URL
+      id: print-grafana-ui
+      if: steps.check-label.outputs.trace == 'true'
+      run: |
+        echo "Grafana UI URL: $NGROK_URL"
+    - name: Run server
+      id: run-server
+      run: |
+        # Start example server
+        docker run -d --network=tracing_network --name=example-grpc-server -p 50051:50051 -e ENABLE_TELEMETRY=true -e TELEMETRY_TARGET=otel-collector:4317 example-grpc-server:latest
+    - name: Run client to generate traces
+      run: |
+        cd internal/examples/example-grpc-client-server/client
+        go run .
+    - name: Show Grafana Logs
+      if: steps.check-label.outputs.trace == 'true'
+      run: |
+          docker logs grafana
+    - name: Show Tempo Logs
+      if: steps.check-label.outputs.trace == 'true'
+      run: |
+          docker logs tempo
+    - name: Show OpenTelemetry Collector Logs
+      if: steps.check-label.outputs.trace == 'true'
+      run: |
+          docker logs otel-collector
+    - name: Set sleep time to use in future steps
+      if: steps.check-label.outputs.trace == 'true'
+      run: |
+        echo "SLEEP_TIME=300" >> "$GITHUB_ENV"
+    - name: Keep action running to view traces
+      if: steps.check-label.outputs.trace == 'true'
+      run: |
+        echo "Sleeping for $SLEEP_TIME seconds..."
+        sleep $SLEEP_TIME
+    - name: teardown
+      if: steps.check-label.outputs.trace == 'true' || github.event_name == 'pull_request' && github.event.action == 'closed'
+      run: |
+        # Stop and remove containers
+        docker stop grafana tempo otel-collector example-grpc-server
+        docker rm grafana tempo otel-collector example-grpc-server
+        docker network rm tracing_network
+        killall ngrok

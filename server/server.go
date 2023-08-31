@@ -121,8 +121,8 @@ func (s *Server) Serve() {
 	s.grpcServer = grpc.NewServer(
 		grpc.UnaryInterceptor(
 			grpc_middleware.ChainUnaryServer(
-				otelgrpc.UnaryServerInterceptor(),
 				loggingUnaryServerInterceptor,
+				otelgrpc.UnaryServerInterceptor(),
 			),
 		),
 	)
