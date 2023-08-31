@@ -59,10 +59,12 @@ jobs:
       if: steps.check-label.outputs.trace == 'true'
       env:
         NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+        NGROK_USER: ${{ secrets.NGROK_USER }}
+        NGROK_PASSWORD: ${{ secrets.NGROK_PASSWORD }}
       run: |
         # Start Ngrok to expose the Grafana UI port
         ./ngrok authtoken $NGROK_AUTH_TOKEN
-        ./ngrok http 3000 &
+        ./ngrok http -auth="$NGROK_USER:$NGROK_PASSWORD" 3000 &
         sleep 5  # Give ngrok some time to initialize and bind the port
         echo "NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')" >> "$GITHUB_ENV"
     - name: Print Grafana UI URL
