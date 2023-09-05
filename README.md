@@ -31,6 +31,8 @@ go test ./... -v
 
 The gRPC services in this application can be instrumented OpenTelemetry tracing. Check out `example-otlp-agent-tempo-grafana`.
 
+Traces can also be generated in a mock tracing workflow and viewed in grafana. Checkout the Readme for the [tracing workflow](../grpc-app-auth/.github/workflows/README.md)
+
 ## Contributions
 
 Contributions and PRs are most welcome! Feel free to fork the repository, make your changes, and submit a pull request.
