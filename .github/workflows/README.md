@@ -13,3 +13,22 @@ To view such traces, fork this repository and configure the following secrets:
     NGROK_PASSWORD
 
 The tracing workflow will log the exposed endpoint, which you can paste into any browser. Visit `/explore` and select traces to view traces.
+
+`tracing-ssh.yml`:
+This is a variant of `tracing.yml` that uses ssh reverse port forwarding and vanilla port forwarding instead of ngrok:
+
+```mermaid
+graph TD
+  subgraph "GitHub Runner"
+    A([Grafana UI<br>Container]) -->|Exposes Port 3000| B([Localhost<br>Port 3000])
+  end
+  subgraph "Remote Server"
+    C([Port 3001])
+  end
+  subgraph "Authenticated User's Machine"
+    E[View Grafana UI] -->|Browser Access| D([Localhost<br>Port 8000])
+  end
+  B .->|SSH Reverse Tunnel<br>Port 3000 -> 3001| C
+  D -->|SSH Forward Tunnel<br>Port 3001 -> 8000| C
+
+```
