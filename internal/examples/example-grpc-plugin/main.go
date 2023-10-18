@@ -25,22 +25,22 @@ func main() {
 	})
 	defer client.Kill()
 
-	// Connect via RPC
-	rpcClient, err := client.Client()
+	// Connect via GRPC
+	grpcClient, err := client.Client()
 	if err != nil {
 		fmt.Println("Error:", err.Error())
 		os.Exit(1)
 	}
 
 	// Request the plugin
-	raw, err := rpcClient.Dispense(shared.AddPluginName)
+	raw, err := grpcClient.Dispense(shared.AddPluginName)
 	if err != nil {
 		fmt.Printf("Error: %v", err.Error())
 		os.Exit(1)
 	}
 
 	// We should have an add service now! This feels like a normal interface
-	// implementation but is in fact over an RPC connection.
+	// implementation but is in fact over a GRPC connection.
 	addService := raw.(shared.AddInterface)
 	a, err := strconv.ParseFloat(os.Args[1], 64)
 	if err != nil {
